@@ -472,10 +472,60 @@ html.mas img[src*='motion-arrow'] {
   display: none;
 }
 
-/* league color dots → monochrome (their hues map to distinct grays) */
+/* League dots: an explicit brightness ladder matching the renamed tiers
+   (grayscaling the site's gem colors gave a scrambled order). The Sun
+   burns warm, Ember is a dying coal, The Void is an empty ring. */
 html.mas #leaderboardLeagueColor,
 html.mas .leagueLevelColor {
-  filter: grayscale(1) brightness(1.4);
+  box-sizing: border-box;
+}
+
+html.mas #leaderboardLeagueColor.diamond,
+html.mas .leagueLevelColor.diamond {
+  background: var(--mas-warm) !important;
+  box-shadow: 0 0 9px rgba(255, 201, 138, 0.85);
+}
+
+html.mas #leaderboardLeagueColor.emerald,
+html.mas .leagueLevelColor.emerald {
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.55);
+}
+
+html.mas #leaderboardLeagueColor.ruby,
+html.mas .leagueLevelColor.ruby {
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+html.mas #leaderboardLeagueColor.sapphire,
+html.mas .leagueLevelColor.sapphire {
+  background: rgba(255, 255, 255, 0.55) !important;
+}
+
+html.mas #leaderboardLeagueColor.platinum,
+html.mas .leagueLevelColor.platinum {
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+html.mas #leaderboardLeagueColor.gold,
+html.mas .leagueLevelColor.gold {
+  background: rgba(255, 255, 255, 0.28) !important;
+}
+
+html.mas #leaderboardLeagueColor.silver,
+html.mas .leagueLevelColor.silver {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+
+html.mas #leaderboardLeagueColor.bronze,
+html.mas .leagueLevelColor.bronze {
+  background: rgba(255, 150, 70, 0.3) !important;
+}
+
+html.mas #leaderboardLeagueColor.iron,
+html.mas .leagueLevelColor.iron {
+  background: transparent !important;
+  border: 1px dotted rgba(233, 233, 228, 0.4);
 }
 
 html.mas .leagueLevelName,
