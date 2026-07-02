@@ -423,7 +423,14 @@
       xpFrame.insertAdjacentElement('afterend', constEl);
     }
 
+    // the site sizes sidebar cards via id-specific rules our div doesn't
+    // get — mirror the XP card's outer width exactly
+    constEl.style.boxSizing = 'border-box';
+    constEl.style.width = `${xpFrame.offsetWidth}px`;
+
     const canvas = constEl.querySelector('canvas');
+    // inline so no site rule can stretch the canvas to its attribute size
+    canvas.style.cssText = 'display:block;width:100%;height:110px;';
     const dpr = devicePixelRatio;
     const w = (canvas.clientWidth || 280) * dpr;
     const h = 110 * dpr;

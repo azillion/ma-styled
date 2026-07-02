@@ -5,6 +5,8 @@ as pointillist, futurist hope core: a stippled void, wide-tracked luminous
 typography, a starfield behind the content — and a dawn on the horizon that
 rises as you earn your daily XP.
 
+![The themed dashboard: starfield, rising dawn, mission widget, and the month's sky](docs/screenshot.png)
+
 The aesthetic draws on 1-bit stipple/dither illustration and pointillist
 sci-fi art — among the references was a galaxy piece by Dogan Ural
 (`doganuraldesign`); the artwork itself is not redistributed here.
