@@ -248,7 +248,8 @@ html.mas #userMenu,
 html.mas #coursesMenu,
 html.mas #estimatedCompletionDetails,
 html.mas #progressDetails,
-html.mas #sequenceUnits {
+html.mas #sequenceUnits,
+html.mas #leagueLevels {
   background: #0a0a0d !important; /* these are white hover-popups on the stock site */
   border: 1px solid rgba(233, 233, 228, 0.18);
   color: var(--mas-star);
@@ -256,7 +257,8 @@ html.mas #sequenceUnits {
 }
 
 html.mas #sequenceTabs,
-html.mas .sequenceCourseUnits {
+html.mas .sequenceCourseUnits,
+html.mas #leagueLevelsTable {
   background: transparent !important;
 }
 
