@@ -236,6 +236,41 @@
     chrome.storage.local.set({ masHistory: hist, masMarks: marks });
   }
 
+  // Merge rules, mirroring the server's: used for cross-tab updates and
+  // for server responses (also protects voyage/currentCourse against a
+  // stale worker that doesn't know those fields yet).
+  function mergeHistories(a, b) {
+    const out = { ...(a ?? {}) };
+    for (const [k, v] of Object.entries(b ?? {})) {
+      const cur = out[k] ?? {};
+      const r = Math.min(cur.r ?? Infinity, v.r ?? Infinity);
+      out[k] = { l: Math.max(cur.l ?? 0, v.l ?? 0), ...(isFinite(r) ? { r } : {}) };
+    }
+    return out;
+  }
+
+  function mergeMarks(a, b) {
+    a = a ?? {};
+    b = b ?? {};
+    const decile = Math.max(a.decile ?? -1, b.decile ?? -1);
+    const voyage = { ...(a.voyage ?? {}) };
+    for (const [slug, entry] of Object.entries(b.voyage ?? {})) {
+      if (!voyage[slug] || (entry.t ?? 0) > (voyage[slug].t ?? 0)) voyage[slug] = entry;
+    }
+    return {
+      init: !!(a.init || b.init),
+      units: [...new Set([...(a.units ?? []), ...(b.units ?? [])])],
+      decile: decile === -1 ? null : decile,
+      weekShown: [a.weekShown, b.weekShown].filter(Boolean).sort().pop() ?? null,
+      voyage,
+      currentCourse:
+        [a.currentCourse, b.currentCourse]
+          .filter(Boolean)
+          .sort((x, y) => (x.t ?? 0) - (y.t ?? 0))
+          .pop() ?? null,
+    };
+  }
+
   // One round-trip to the private sync server (see server/): our state is
   // merged in and the combined state comes back. Runs before celebrations
   // so events fired in another browser don't repeat here. Unconfigured or
@@ -251,8 +286,10 @@
         marks,
       });
       if (merged?.history) {
-        hist = merged.history;
-        if (merged.marks) marks = merged.marks;
+        // merge, never replace — the response must not be able to delete
+        // fields a stale worker doesn't know about
+        hist = mergeHistories(hist, merged.history);
+        marks = mergeMarks(marks, merged.marks);
         persist();
       }
     } catch {
@@ -969,8 +1006,28 @@
   }
   init();
 
-  chrome.storage.onChanged.addListener((_c, area) => {
+  chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'sync') chrome.storage.sync.get(DEFAULTS, applySettings);
+    if (area !== 'local' || !ready) return;
+    // another tab (e.g. a course page where you just charted) wrote state —
+    // fold it in live instead of waiting for a reload. Merging our own
+    // writes is a no-op, and this path never persists, so no ping-pong.
+    let touched = false;
+    if (changes.masHistory?.newValue) {
+      hist = mergeHistories(hist, changes.masHistory.newValue);
+      touched = true;
+    }
+    if (changes.masMarks?.newValue) {
+      marks = mergeMarks(marks, changes.masMarks.newValue);
+      touched = true;
+    }
+    if (touched && settings.enabled) {
+      updateMission();
+      updateConstellation();
+      updateVoyage();
+      updateShore();
+      updateDawn();
+    }
   });
 
   // Keep the widgets fresh if the page mutates (dialogs, answer review).
