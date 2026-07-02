@@ -1,0 +1,8 @@
+# local-only reference art (copyrighted, never commit)
+reference/
+
+# wrangler
+server/node_modules/
+server/.wrangler/
+
+.DS_Store

@@ -1,0 +1,1225 @@
+/* ============================================================
+   MA Styled — Hope Core
+   Pointillist futurist theme for Math Academy.
+   Reference mood: stipple/dither noir, vertical light beams,
+   a dawn dome rising out of darkness. Light = progress.
+
+   Everything is scoped under html.mas so the popup toggle can
+   turn the whole theme off instantly.
+   ============================================================ */
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('chrome-extension://__MSG_@@extension_id__/fonts/space-grotesk.woff2') format('woff2');
+}
+
+html.mas {
+  /* ---- palette ---------------------------------------------- */
+  --mas-void: #030304;          /* page background               */
+  --mas-panel: rgba(12, 12, 15, 0.82); /* translucent so the dawn bleeds through */
+  --mas-panel-solid: #0c0c0f;
+  --mas-star: #e9e9e4;          /* primary text — warm paper white */
+  --mas-dim: #8f8f92;           /* secondary text                */
+  --mas-faint: rgba(233, 233, 228, 0.16); /* hairlines, dotted borders */
+  --mas-warm: #ffc98a;          /* rare warm star accent         */
+  --mas-cool: #9fc3ff;          /* rare cool star accent         */
+  --mas-glow: 0 0 18px rgba(255, 255, 255, 0.28);
+  --mas-font: 'Space Grotesk', 'Futura', system-ui, sans-serif;
+
+  /* Driven by content.js from daily XP (0..1). Faint hope by default. */
+  --mas-progress: 0.12;
+
+  background: var(--mas-void);
+  color-scheme: dark;
+}
+
+/* ---- base ---------------------------------------------------- */
+
+html.mas body {
+  background: transparent; /* the void + starfield live behind body */
+  color: var(--mas-star);
+  font-family: var(--mas-font);
+  font-weight: 350;
+  letter-spacing: 0.01em;
+}
+
+/* Stipple grain over everything — the pointillist surface.
+   screen blend only ever lightens, so text stays readable. */
+html.mas[data-mas-grain] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 9 -4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+}
+
+/* ---- typography ---------------------------------------------- */
+
+/* !important: some pages (course sequence) set navy heading colors with
+   rules that beat plain specificity */
+html.mas h1,
+html.mas h2,
+html.mas h3,
+html.mas h4,
+html.mas h5,
+html.mas h6 {
+  font-family: var(--mas-font);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--mas-star) !important;
+}
+
+/* softer than --mas-glow: at heading sizes a wide blur reads as smear */
+html.mas h1,
+html.mas h2 {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.14);
+}
+
+/* !important: course detail pages set navy link colors via rules that
+   out-specificity plain inheritance */
+html.mas a {
+  color: var(--mas-star) !important;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--mas-faint);
+  transition: text-shadow 160ms ease, border-color 160ms ease;
+}
+
+html.mas a:hover {
+  text-shadow: var(--mas-glow);
+  border-bottom-color: var(--mas-star);
+}
+
+/* ---- controls: become the light on hover ---------------------- */
+
+html.mas button,
+html.mas input[type='button'],
+html.mas input[type='submit'],
+html.mas [role='button'] {
+  background: transparent;
+  color: var(--mas-star);
+  border: 1px solid rgba(233, 233, 228, 0.35);
+  border-radius: 2px;
+  font-family: var(--mas-font);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+html.mas button:hover,
+html.mas input[type='button']:hover,
+html.mas input[type='submit']:hover,
+html.mas [role='button']:hover {
+  background: var(--mas-star);
+  color: var(--mas-void);
+  box-shadow: 0 0 26px rgba(255, 255, 255, 0.35);
+}
+
+html.mas input[type='text'],
+html.mas input[type='email'],
+html.mas input[type='password'],
+html.mas input[type='number'],
+html.mas input[type='search'],
+html.mas textarea,
+html.mas select {
+  background: var(--mas-panel-solid);
+  color: var(--mas-star);
+  border: 1px dotted var(--mas-faint);
+  border-radius: 2px;
+  font-family: var(--mas-font);
+}
+
+html.mas input:focus,
+html.mas textarea:focus,
+html.mas select:focus {
+  outline: none;
+  border: 1px dotted var(--mas-star);
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.18);
+}
+
+/* ---- structure ------------------------------------------------ */
+
+html.mas table {
+  border-collapse: collapse;
+}
+
+html.mas th,
+html.mas td {
+  border-color: var(--mas-faint);
+}
+
+html.mas hr {
+  border: none;
+  border-top: 1px dotted var(--mas-faint);
+}
+
+html.mas ::selection {
+  background: var(--mas-star);
+  color: var(--mas-void);
+}
+
+html.mas ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html.mas ::-webkit-scrollbar-track {
+  background: var(--mas-void);
+}
+
+html.mas ::-webkit-scrollbar-thumb {
+  background: rgba(233, 233, 228, 0.22);
+  border: 3px solid var(--mas-void);
+  border-radius: 5px;
+}
+
+html.mas ::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 233, 228, 0.45);
+}
+
+/* ============================================================
+   SITE-SPECIFIC OVERRIDES — Math Academy
+   Server-rendered jQuery app; stable hand-written camelCase ids.
+   !important is used ONLY where the site sets colors inline or
+   uses !important itself — plain rules elsewhere so the app's
+   inline state changes (e.g. selected answer choice) still win.
+   Panels use --mas-panel (translucent) so the dawn and stars
+   bleed through the gaps between cards.
+   ============================================================ */
+
+/* ---- page skeleton: clear the white so the void shows -------- */
+
+html.mas #wrap,
+html.mas #container,
+html.mas #content,
+html.mas #footer,
+html.mas #stepsFrame,
+html.mas #steps {
+  background: transparent;
+}
+
+/* ---- top bar --------------------------------------------------- */
+
+html.mas #topRibbon {
+  background: rgba(3, 3, 4, 0.78);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px dotted var(--mas-faint);
+}
+
+html.mas #topBarContainer,
+html.mas #topBar {
+  background: transparent;
+  font-family: var(--mas-font);
+}
+
+/* dark navy raster logo — invert to white so it survives the void */
+html.mas img.logo {
+  filter: invert(1) grayscale(1) brightness(1.6);
+  opacity: 0.92;
+}
+
+html.mas a.headerLink {
+  color: var(--mas-dim) !important; /* site colors the active link via per-page id rules */
+  border-bottom-color: var(--mas-star) !important; /* recolors the active-page underline; inactive links have none */
+  font-family: var(--mas-font);
+  letter-spacing: 0.2em;
+  text-shadow: none;
+}
+
+html.mas a.headerLink:hover {
+  color: var(--mas-star) !important;
+  text-shadow: var(--mas-glow);
+}
+
+html.mas #userHeader {
+  background: var(--mas-panel-solid);
+  border: 1px dotted rgba(233, 233, 228, 0.4);
+  color: var(--mas-star);
+}
+
+html.mas #userMenu,
+html.mas #coursesMenu,
+html.mas #estimatedCompletionDetails,
+html.mas #progressDetails,
+html.mas #sequenceUnits {
+  background: #0a0a0d !important; /* these are white hover-popups on the stock site */
+  border: 1px solid rgba(233, 233, 228, 0.18);
+  color: var(--mas-star);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.85);
+}
+
+html.mas #sequenceTabs,
+html.mas .sequenceCourseUnits {
+  background: transparent !important;
+}
+
+/* the site sets explicit dark grays on these — inheritance loses */
+html.mas #userMenu-name,
+html.mas .headerMenuItem {
+  color: var(--mas-star) !important;
+}
+
+html.mas #userMenu-username {
+  color: var(--mas-dim) !important;
+}
+
+html.mas .headerMenuItem:hover,
+html.mas .coursesMenu-courseLink:hover {
+  background: rgba(233, 233, 228, 0.08) !important;
+}
+
+html.mas .headerMenuSeparator {
+  background: transparent;
+  border-color: var(--mas-faint);
+}
+
+/* ---- modals & dropdown menus ------------------------------------- */
+
+html.mas #messageBox,
+html.mas #confirmationDialog,
+html.mas #processingDialog,
+html.mas #supportDialog,
+html.mas #xpGoalsDialog,
+html.mas #courseDialog,
+html.mas #flagContentDialog,
+html.mas #helpMenu {
+  background: #0a0a0d;
+  border: 1px solid rgba(233, 233, 228, 0.18);
+  color: var(--mas-star);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+}
+
+/* dialog titles + the button-shaped divs inside them */
+html.mas [id$='Dialog-title'] {
+  color: var(--mas-star);
+  font-family: var(--mas-font);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+html.mas [id$='-submitButton'],
+html.mas [id$='-cancelButton'],
+html.mas [id$='-closeButton'],
+html.mas [id$='-okButton'],
+html.mas [id$='-yesButton'],
+html.mas [id$='-noButton'] {
+  background: transparent !important;
+  color: var(--mas-star) !important;
+  border: 1px solid rgba(233, 233, 228, 0.35);
+  border-radius: 2px;
+  font-family: var(--mas-font);
+  letter-spacing: 0.16em;
+  cursor: pointer;
+}
+
+html.mas [id$='-submitButton']:hover,
+html.mas [id$='-cancelButton']:hover,
+html.mas [id$='-closeButton']:hover,
+html.mas [id$='-okButton']:hover,
+html.mas [id$='-yesButton']:hover,
+html.mas [id$='-noButton']:hover {
+  background: var(--mas-star) !important;
+  color: var(--mas-void) !important;
+}
+
+html.mas #screenCover {
+  background: rgba(0, 0, 1, 0.7);
+}
+
+html.mas .coursesMenu-categoryHeader,
+html.mas .coursesMenu-courseSequence,
+html.mas #coursesMenu-underDevelopment,
+html.mas .xpGoalsDialog-dayOfWeek {
+  color: var(--mas-dim);
+  font-family: var(--mas-font);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ---- sidebar cards ---------------------------------------------- */
+
+html.mas .sidebarFrame {
+  background: var(--mas-panel);
+  border: 1px solid rgba(233, 233, 228, 0.14);
+  border-radius: 3px;
+  backdrop-filter: blur(3px);
+}
+
+html.mas h1#pageTitle,
+html.mas td#courseName,
+html.mas a#courseNameLink {
+  color: var(--mas-star);
+  font-family: var(--mas-font);
+}
+
+html.mas #coursePercentComplete {
+  background: transparent;
+  border: 1px dotted rgba(233, 233, 228, 0.45);
+  color: var(--mas-star);
+}
+
+/* inline navy span inside — needs !important */
+html.mas #estimatedCompletion,
+html.mas #estimatedCompletion span {
+  color: var(--mas-dim) !important;
+}
+
+/* section labels: quiet, wide-tracked */
+html.mas #courseHeader,
+html.mas #todaysGoalHeader,
+html.mas #thisWeekHeader,
+html.mas #leaderboardHeader,
+html.mas #xpEarned,
+html.mas .completedTasksDate {
+  color: var(--mas-dim);
+  font-family: var(--mas-font);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* the numbers are the stars of the sidebar */
+html.mas #totalXP,
+html.mas #thisWeekTotalXP,
+html.mas td#dailyGoalPoints {
+  color: var(--mas-star);
+  font-family: var(--mas-font);
+  text-shadow: var(--mas-glow);
+}
+
+/* ---- daily goal: the bar is a strip of dawn ---------------------- */
+
+html.mas td#dailyGoalProgressBarFrame {
+  background: rgba(233, 233, 228, 0.08);
+}
+
+html.mas #dailyGoalProgressBar {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.35), #fff) !important;
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.45);
+}
+
+html.mas #dailyGoalProgressBarExceeded {
+  background: linear-gradient(90deg, rgba(255, 201, 138, 0.4), var(--mas-warm)) !important;
+  box-shadow: 0 0 16px rgba(255, 201, 138, 0.5);
+}
+
+html.mas #dailyGoalMessage,
+html.mas #leaderboardTimeRemaining {
+  color: var(--mas-dim);
+}
+
+/* weekly chart */
+html.mas .dayActivity {
+  background-color: var(--mas-star) !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+}
+
+html.mas .yAxisTick,
+html.mas .dayOfWeek {
+  color: var(--mas-dim);
+  font-family: var(--mas-font);
+}
+
+html.mas .yAxisGridLine {
+  border-color: var(--mas-faint);
+}
+
+/* leaderboard */
+html.mas td#leaderboardLeagueName {
+  color: var(--mas-star) !important; /* stock navy is invisible on the void */
+  font-family: var(--mas-font);
+}
+
+html.mas #leaderboardTable td {
+  border-color: var(--mas-faint);
+  color: var(--mas-star);
+}
+
+html.mas td.leaderboardUserCurrent {
+  background: rgba(233, 233, 228, 0.07);
+}
+
+/* monochrome zones: rising toward the light, fading into the dark —
+   no traffic-light green/red (site uses !important; match it) */
+html.mas .leaderboardTextPromotionZone {
+  color: var(--mas-star) !important;
+}
+
+html.mas .leaderboardTextDemotionZone {
+  color: rgba(233, 233, 228, 0.38) !important;
+}
+
+/* the "Promotion Zone" / "Demotion Zone" divider rows are inline-styled */
+html.mas #leaderboardTable td[style*='color: green'] {
+  color: var(--mas-star) !important;
+  text-shadow: var(--mas-glow);
+}
+
+html.mas #leaderboardTable td[style*='color: red'] {
+  color: rgba(233, 233, 228, 0.38) !important;
+}
+
+/* the arrow icons are white-backed rasters — the text says it all */
+html.mas img[src*='motion-arrow'] {
+  display: none;
+}
+
+/* league color dots → monochrome (their hues map to distinct grays) */
+html.mas #leaderboardLeagueColor,
+html.mas .leagueLevelColor {
+  filter: grayscale(1) brightness(1.4);
+}
+
+html.mas .leagueLevelName,
+html.mas .leagueLevelNumber,
+html.mas .leagueLevelPercentile {
+  color: var(--mas-dim);
+}
+
+/* ---- task feed ---------------------------------------------------- */
+
+html.mas .taskUnlocked,
+html.mas .taskCompleted,
+html.mas .taskLocked {
+  background: var(--mas-panel);
+  border: 1px solid rgba(233, 233, 228, 0.14);
+  border-radius: 3px;
+  backdrop-filter: blur(3px);
+}
+
+html.mas .taskCompleted {
+  opacity: 0.7;
+}
+
+html.mas .taskLocked {
+  opacity: 0.55;
+  border-style: dotted; /* locked = not yet drawn into being */
+}
+
+html.mas .taskTypeUnlocked,
+html.mas .taskTypeLocked,
+html.mas .taskCourseNameUnlocked,
+html.mas .taskCourseNameLocked {
+  color: var(--mas-dim);
+  font-family: var(--mas-font);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+html.mas .taskNameUnlocked,
+html.mas [id^='taskName-'] {
+  color: var(--mas-star);
+  font-family: var(--mas-font);
+}
+
+html.mas .taskNameLocked {
+  color: var(--mas-dim);
+}
+
+html.mas .taskPointsUnlocked,
+html.mas .completedTaskPoints {
+  color: var(--mas-star);
+}
+
+html.mas .taskPointsLocked,
+html.mas .taskTimeCompleted,
+html.mas .completedTaskPointsSlash {
+  color: var(--mas-dim);
+}
+
+html.mas span.pointsGained {
+  color: var(--mas-warm);
+  text-shadow: 0 0 10px rgba(255, 201, 138, 0.4);
+}
+
+html.mas .pointsLost {
+  color: #ff9d9d;
+}
+
+html.mas .taskProgressBarFrame {
+  background: rgba(233, 233, 228, 0.08);
+}
+
+html.mas .taskProgressBar {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.35), #fff) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+html.mas .taskPrerequisitesHeader {
+  color: var(--mas-dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* the padlock icons have no class (<img src="img/unlocked.png">) and
+   vanish on black — make them monochrome light */
+html.mas .taskHeader img[src*='locked'] {
+  filter: invert(1) grayscale(1) brightness(1.7);
+}
+
+/* green checkmarks → white light (covers completedCheckmark and
+   prerequisiteCheckmark, both green-checkmark.png) */
+html.mas img[src*='checkmark'] {
+  filter: grayscale(1) brightness(1.9);
+}
+
+html.mas .taskProgress {
+  color: var(--mas-dim);
+}
+
+/* ---- site buttons (anchors/divs, not <button>) --------------------- */
+
+html.mas .button,
+html.mas a.taskStartButton,
+html.mas .questionWidget-submitButton,
+html.mas .continueButton,
+html.mas #startButton {
+  background: transparent !important; /* site blue #0577c7 comes from id/inline in places */
+  color: var(--mas-star) !important;
+  border: 1px solid rgba(233, 233, 228, 0.35);
+  border-radius: 2px;
+  font-family: var(--mas-font);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+html.mas .button:hover,
+html.mas a.taskStartButton:hover,
+html.mas .questionWidget-submitButton:hover,
+html.mas .continueButton:hover,
+html.mas #startButton:hover {
+  background: var(--mas-star) !important;
+  color: var(--mas-void) !important;
+  box-shadow: 0 0 26px rgba(255, 255, 255, 0.35);
+}
+
+html.mas .buttonDisabled,
+html.mas .disabledButton {
+  opacity: 0.4;
+  border-style: dotted;
+}
+
+html.mas .buttonDisabled:hover,
+html.mas .disabledButton:hover {
+  background: transparent !important;
+  color: var(--mas-star) !important;
+  box-shadow: none;
+}
+
+/* tabs */
+html.mas .sequenceCourseTab {
+  color: var(--mas-dim);
+  font-family: var(--mas-font);
+  letter-spacing: 0.12em;
+}
+
+html.mas .sequenceCoursePercentComplete {
+  background: transparent !important;
+  border: 1px dotted rgba(233, 233, 228, 0.45);
+  color: var(--mas-star) !important;
+  font-family: var(--mas-font);
+}
+
+html.mas .tabSelected,
+html.mas .sequenceCourseTabSelected {
+  color: var(--mas-star);
+  font-family: var(--mas-font);
+  letter-spacing: 0.12em;
+  border-bottom: 2px dotted var(--mas-star);
+}
+
+/* course detail pages (OVERVIEW / OUTCOMES / CONTENT) use their own tab
+   classes — catch them generically: kill the site's text-shadow smear and
+   recolor the navy active-tab underline */
+html.mas [class*='tab' i] {
+  text-shadow: none;
+}
+
+html.mas [class*='tab' i][class*='selected' i] {
+  color: var(--mas-star) !important;
+  border-color: var(--mas-star) !important;
+}
+
+/* ---- course units ---------------------------------------------------
+   The per-unit progress bars are tables of inline-styled cells encoding
+   spaced-repetition depth as a blue scale (dark = well learned) ending
+   in white (untouched). Remap the whole scale to light emerging from
+   the dark: the more you've learned, the brighter the bar burns. */
+
+html.mas .courseUnit,
+html.mas .courseUnitLink,
+html.mas .progressFieldName,
+html.mas .progressFieldData {
+  color: var(--mas-star);
+  font-family: var(--mas-font);
+}
+
+html.mas .progressFieldName {
+  color: var(--mas-dim);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Matched by inline color rather than container class so the same remap
+   covers every page that draws these bars (dashboard sequence popup,
+   /courses/{id}/progress unit list, ...). */
+html.mas [style*='background-color: rgb(23, 107, 181)'] {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+html.mas [style*='background-color: rgb(29, 134, 226)'] {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+html.mas [style*='background-color: rgb(74, 158, 232)'] {
+  background-color: rgba(255, 255, 255, 0.52) !important;
+}
+
+html.mas [style*='background-color: rgb(120, 182, 237)'] {
+  background-color: rgba(255, 255, 255, 0.36) !important;
+}
+
+html.mas [style*='background-color: rgb(165, 207, 243)'] {
+  background-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+html.mas [style*='background-color: rgb(210, 231, 249)'] {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.mas [style*='background-color: white'] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ---- course progress page (/courses/{id}/progress) ------------------ */
+
+html.mas .unitName,
+html.mas .unitName a,
+html.mas .unitFrame {
+  color: var(--mas-star) !important;
+}
+
+/* current item in the Course Sequence sidebar (and similar "selected"
+   states) keep a navy the void swallows — force light */
+html.mas [class*='selected' i] {
+  color: var(--mas-star) !important;
+}
+
+/* the expander icons are dark-on-white rasters: invert → the box melts
+   into the background and the glyph becomes light. Checkmarks excluded. */
+html.mas [class*='topicIcon'],
+html.mas .unitFrame img:not([src*='checkmark']),
+html.mas .courseUnit img:not([src*='checkmark']),
+html.mas .unitName img:not([src*='checkmark']) {
+  filter: invert(1) grayscale(1);
+}
+
+/* ---- question/step content ------------------------------------------
+   Task/lesson pages are OUT OF SCOPE (the extension only loads on
+   /learn* and /courses/*), but the dashboard's answer-review view
+   (#taskAnswersFrame) renders question widgets inline — these rules
+   cover that. */
+
+html.mas .step {
+  background: var(--mas-panel);
+  border: 1px solid rgba(233, 233, 228, 0.14);
+  border-radius: 3px;
+  backdrop-filter: blur(3px);
+  color: var(--mas-star);
+}
+
+html.mas .stepName,
+html.mas a.stepAnchor {
+  color: var(--mas-star);
+  font-family: var(--mas-font);
+}
+
+html.mas span.stepType,
+html.mas .explanationHeader {
+  color: var(--mas-dim);
+  font-family: var(--mas-font);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+html.mas .stepButton {
+  background: transparent;
+  border: 1px dotted rgba(233, 233, 228, 0.4);
+}
+
+html.mas .stepButton.current {
+  background: var(--mas-star);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+/* question widget */
+html.mas .questionWidget-title {
+  color: var(--mas-star);
+  font-family: var(--mas-font);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+html.mas .questionWidget-text,
+html.mas td.questionWidget-choiceText {
+  color: var(--mas-star);
+}
+
+/* NO !important on the circles: the app marks the selected choice
+   with inline styles, which must keep winning. */
+html.mas .questionWidget-choiceLetterCircle {
+  background: transparent;
+  border: 1px solid rgba(233, 233, 228, 0.4);
+  color: var(--mas-star);
+  transition: box-shadow 160ms ease;
+}
+
+html.mas .questionWidget-choiceLetterCircle:hover {
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.4);
+}
+
+/* correct / incorrect: keep the semantic hues, brighten for dark bg */
+html.mas .questionWidget-correctText {
+  color: #8fe8ab !important;
+  text-shadow: 0 0 12px rgba(143, 232, 171, 0.45);
+}
+
+html.mas .questionWidget-incorrectText {
+  color: #ff9d9d !important;
+}
+
+/* end-of-lesson screen (site sets color: green INLINE — !important needed) */
+html.mas #finalScreen-completionMessage {
+  color: #a5f0bd !important;
+  text-shadow: 0 0 16px rgba(165, 240, 189, 0.45);
+  font-family: var(--mas-font);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+html.mas #finalScreen-pointsMessage {
+  color: var(--mas-star);
+}
+
+html.mas #finalScreen-pointsMessage b {
+  color: var(--mas-warm);
+  text-shadow: 0 0 12px rgba(255, 201, 138, 0.45);
+}
+
+/* figures are drawn for white backgrounds — give them a white plate
+   rather than inverting (inversion mangles colored diagrams/photos) */
+html.mas .questionWidget-graphic img,
+html.mas div.graphic img,
+html.mas img.uploadedImage {
+  background: #fff;
+  padding: 4px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(233, 233, 228, 0.12);
+}
+
+/* MathQuill input fields (free response) */
+html.mas .mq-editable-field {
+  border-color: rgba(233, 233, 228, 0.35) !important;
+  color: var(--mas-star);
+}
+
+html.mas .mq-editable-field .mq-cursor {
+  border-color: var(--mas-star) !important;
+}
+
+/* Math rendering: pre-rendered MathJax SVG uses fill="currentColor",
+   MathJax v3 / KaTeX inherit color — recoloring text above is enough.
+   Never set svg fills globally: solution annotations use intentional
+   green/red fills. Leave mjx-assistive-mml alone. */
+
+/* ============================================================
+   EFFECTS (elements injected by content.js)
+   ============================================================ */
+
+/* Starfield canvas — behind everything */
+canvas.mas-stars {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* The dawn: a glowing dome pinned to the bottom of the viewport.
+   Its intensity and rise are driven by --mas-progress (0..1), and its
+   color by --mas-dawn-rgb — white while climbing, warm gold once the
+   daily lesson goal is met (data-mas-goal-met, set by content.js). */
+html.mas {
+  --mas-dawn-rgb: 255, 255, 255;
+}
+
+html.mas[data-mas-goal-met] {
+  --mas-dawn-rgb: 255, 209, 156;
+}
+
+.mas-dawn {
+  position: fixed;
+  inset: auto 0 0 0;
+  height: 52vh;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    /* the sun dome — only really emerges near the goal */
+    radial-gradient(
+      ellipse 42% calc(4% + var(--mas-progress) * 26%) at 50% 100%,
+      rgba(var(--mas-dawn-rgb), calc(var(--mas-progress) * 0.9)) 0%,
+      rgba(var(--mas-dawn-rgb), calc(var(--mas-progress) * 0.35)) 55%,
+      transparent 100%
+    ),
+    /* broad horizon glow — grows with progress */
+    radial-gradient(
+      ellipse 120% 78% at 50% 118%,
+      rgba(var(--mas-dawn-rgb), calc(0.05 + var(--mas-progress) * 0.38)) 0%,
+      transparent 62%
+    );
+  transition: opacity 1.2s ease;
+}
+
+/* Mission widget: today's lessons as six points of light, mounted at
+   the bottom of the sidebar XP card by content.js. */
+.mas-mission {
+  margin: 18px 16px 8px;
+  padding: 16px 4px 14px;
+  border-top: 1px dotted var(--mas-faint);
+  font-family: var(--mas-font);
+  text-align: center; /* the card's other sections are centered */
+}
+
+.mas-mission-header {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: var(--mas-dim);
+}
+
+.mas-mission-dots {
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+  margin: 12px 0 10px;
+}
+
+.mas-mission-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px dotted rgba(233, 233, 228, 0.5);
+  transition: background 500ms ease, box-shadow 500ms ease;
+}
+
+.mas-mission-dot.lit {
+  background: rgb(var(--mas-dawn-rgb));
+  border: 1px solid rgb(var(--mas-dawn-rgb));
+  box-shadow: 0 0 10px rgba(var(--mas-dawn-rgb), 0.75);
+}
+
+.mas-mission-count {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--mas-star);
+}
+
+html.mas[data-mas-goal-met] .mas-mission-count {
+  color: var(--mas-warm);
+  text-shadow: 0 0 12px rgba(255, 201, 138, 0.45);
+}
+
+.mas-mission-left {
+  margin-top: 5px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--mas-dim);
+}
+
+.mas-mission-eta {
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--mas-dim);
+}
+
+/* last 7 days: columns of six dots growing from the bottom */
+.mas-week {
+  display: flex;
+  justify-content: center;
+  gap: 11px;
+  margin: 13px 0 11px;
+}
+
+.mas-week-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.mas-week-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(233, 233, 228, 0.13);
+}
+
+.mas-week-dot.lit {
+  background: #fff;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.55);
+}
+
+.mas-week-dot.warm {
+  background: var(--mas-warm);
+  box-shadow: 0 0 5px rgba(255, 201, 138, 0.75);
+}
+
+.mas-week-day {
+  margin-top: 2px;
+  font-size: 8px;
+  letter-spacing: 0;
+  color: var(--mas-dim);
+}
+
+/* Constellation: one star per day with lessons this month; goal-met
+   days shine and consecutive ones are joined. Mounted as a sidebar card. */
+.mas-constellation {
+  padding: 16px;
+  text-align: center;
+  font-family: var(--mas-font);
+}
+
+.mas-constellation-label {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: var(--mas-dim);
+  margin-bottom: 10px;
+}
+
+.mas-constellation canvas {
+  display: block;
+  width: 100%;
+  height: 110px;
+}
+
+.mas-constellation-streak {
+  margin-top: 8px;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--mas-star);
+}
+
+/* The traveler: a tiny figure on the horizon, walking toward the dawn.
+   Position (left) is set by content.js from course completion. */
+.mas-traveler {
+  position: fixed;
+  bottom: 1.6vh;
+  left: 4vw;
+  width: 3px;
+  height: 11px;
+  z-index: -1;
+  border-radius: 1px;
+  background: rgba(233, 233, 228, 0.85);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  transition: left 2s ease;
+  animation: mas-walk 1.7s ease-in-out infinite;
+}
+
+.mas-traveler::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -0.5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(233, 233, 228, 0.85);
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.45);
+}
+
+@keyframes mas-walk {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+/* milestone flare: the dawn surges for a few seconds */
+.mas-flare {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 55% at 50% 105%,
+    rgba(255, 228, 188, 0.55) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  animation: mas-flare 4.5s ease-in-out forwards;
+}
+
+@keyframes mas-flare {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* weekly transmission: a quiet report, dismissed with one click */
+.mas-transmission {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2147483647;
+  min-width: 320px;
+  padding: 36px 46px 30px;
+  text-align: center;
+  font-family: var(--mas-font);
+  background: #0a0a0d;
+  border: 1px solid rgba(233, 233, 228, 0.25);
+  box-shadow: 0 0 90px rgba(0, 0, 0, 0.95), 0 0 36px rgba(255, 255, 255, 0.05);
+}
+
+.mas-transmission-title {
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  color: var(--mas-dim);
+  margin-bottom: 16px;
+}
+
+.mas-transmission-line {
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: var(--mas-star);
+  margin: 8px 0;
+}
+
+.mas-transmission-line.dim {
+  font-size: 11px;
+  color: var(--mas-dim);
+}
+
+.mas-transmission-btn {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 8px 26px;
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  color: var(--mas-star);
+  border: 1px solid rgba(233, 233, 228, 0.35);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.mas-transmission-btn:hover {
+  background: var(--mas-star);
+  color: var(--mas-void);
+  box-shadow: 0 0 26px rgba(255, 255, 255, 0.35);
+}
+
+/* Rotating hope-core microcopy, bottom corner, wide-tracked caps */
+.mas-hud {
+  position: fixed;
+  left: 18px;
+  bottom: 14px;
+  z-index: 2147483645;
+  pointer-events: none;
+  font-family: var(--mas-font);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: rgba(233, 233, 228, 0.5);
+  transition: opacity 1.6s ease;
+}
+
+/* A vertical beam of light — applied to elements worth celebrating
+   (completed tasks, the active lesson). Position: relative host. */
+.mas-beam {
+  position: relative;
+}
+
+.mas-beam::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 2px;
+  height: 38vh;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.85),
+    rgba(255, 255, 255, 0) 90%
+  );
+  filter: blur(0.4px);
+}
+
+/* One-shot ascension streak, spawned by content.js on completion */
+.mas-ascend {
+  position: fixed;
+  width: 2px;
+  height: 30vh;
+  z-index: 2147483644;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.95) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: mas-rise 1.8s ease-out forwards;
+}
+
+/* lessons beyond the daily goal rise warm */
+.mas-ascend.warm {
+  background: linear-gradient(
+    to top,
+    rgba(255, 201, 138, 0) 0%,
+    rgba(255, 201, 138, 0.95) 45%,
+    rgba(255, 201, 138, 0) 100%
+  );
+}
+
+@keyframes mas-rise {
+  from { transform: translateY(0); opacity: 0; }
+  20%  { opacity: 1; }
+  to   { transform: translateY(-60vh); opacity: 0; }
+}
+
+/* ---- motion off / reduced motion ------------------------------ */
+
+html.mas:not([data-mas-motion]) .mas-ascend,
+html.mas:not([data-mas-motion]) .mas-flare,
+html.mas:not([data-mas-motion]) .mas-beam::before {
+  animation: none;
+  display: none;
+}
+
+html.mas:not([data-mas-motion]) .mas-traveler {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.mas .mas-ascend { animation: none; display: none; }
+  html.mas .mas-flare { animation: none; display: none; }
+  html.mas .mas-traveler { animation: none; }
+}
