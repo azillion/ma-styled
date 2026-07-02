@@ -126,26 +126,57 @@
 
   // ---- history ----------------------------------------------------------
 
+  // Runs on load and on every observer tick (the dashboard hydrates late),
+  // persisting only when something actually changed.
   function absorb() {
+    const today = dkey();
+    let changed = false;
+
     const byDate = lessonsByDate();
     if (byDate) {
-      // today's count is authoritative; older visible days may be truncated,
-      // so never lower a recorded value
+      // counts only ever grow within a day; max() also protects against
+      // reading the list mid-hydration
       for (const [key, count] of Object.entries(byDate)) {
-        hist[key] = { ...hist[key], l: Math.max(hist[key]?.l ?? 0, count) };
+        if (count > (hist[key]?.l ?? 0)) {
+          hist[key] = { ...hist[key], l: count };
+          changed = true;
+        }
       }
-      hist[dkey()] = { ...hist[dkey()], l: byDate[dkey()] ?? 0 };
     }
+
     const c = readCourse();
     if (c) {
-      course = c;
-      hist[dkey()] = { ...hist[dkey()], r: c.remaining };
+      // The unit bars round to whole percents, so single lessons often
+      // don't move their estimate. Anchor to the bars but decrement by our
+      // own exact lesson counts: remaining ticks down 1 per lesson, and
+      // re-anchors whenever the site's estimate drops below the model.
+      let est = c.remaining;
+      const prevKey = Object.keys(hist)
+        .filter((k) => k < today && hist[k]?.r != null)
+        .sort()
+        .pop();
+      if (prevKey) {
+        let since = 0;
+        for (const [k, v] of Object.entries(hist)) {
+          if (k > prevKey && k <= today) since += v.l ?? 0;
+        }
+        est = Math.min(est, hist[prevKey].r - since);
+      }
+      if (hist[today]?.r != null) est = Math.min(est, hist[today].r);
+      est = Math.max(0, est);
+
+      course = { ...c, remaining: est, done: c.total ? 1 - est / c.total : c.done };
+      if (hist[today]?.r !== est) {
+        hist[today] = { ...hist[today], r: est };
+        changed = true;
+      }
     } else if (course.done === null) {
       // no units on this page — fall back to the latest recorded snapshot
       const latest = Object.keys(hist).sort().reverse().find((k) => hist[k]?.r != null);
       if (latest) course = { remaining: hist[latest].r, total: null, done: null };
     }
-    persist();
+
+    if (changed) persist();
   }
 
   function persist() {
@@ -528,7 +559,9 @@
         localStorage.removeItem(k);
       }
     }
-    localStorage.setItem(key, String(today));
+    // never lower the baseline — a mid-hydration undercount would replay
+    // the same streaks on the next load
+    if (!isFinite(last) || today > last) localStorage.setItem(key, String(today));
     if (!isFinite(last) || today <= last) return;
 
     const anchor = missionEl ?? document.querySelector(SITE.xpFrame);
@@ -631,9 +664,12 @@
   // seed marks on the very first run so pre-existing progress
   // doesn't trigger a celebration barrage
   function checkMarksInit() {
-    if (marks.init) return;
-    if (course.units) marks.units = course.units.filter((u) => u.whitePct === 0).map((u) => u.name);
-    if (course.done !== null) marks.decile = Math.floor(course.done * 10);
+    // wait until the units have actually rendered — initializing against a
+    // half-hydrated page would arm every already-finished unit to
+    // "complete" itself later
+    if (marks.init || !course.units) return;
+    marks.units = course.units.filter((u) => u.whitePct === 0).map((u) => u.name);
+    marks.decile = course.done !== null ? Math.floor(course.done * 10) : null;
     marks.init = true;
     persist();
   }
@@ -690,10 +726,16 @@
     updateConstellation();
     updateDawn();
 
-    celebrateLessons();
-    celebrateSummits();
-    celebrateDecile();
-    weeklyTransmission();
+    // let the dashboard finish hydrating before reading celebration
+    // baselines (all four are one-shot guarded, so re-mounts are no-ops)
+    setTimeout(() => {
+      absorb();
+      checkMarksInit();
+      celebrateLessons();
+      celebrateSummits();
+      celebrateDecile();
+      weeklyTransmission();
+    }, 1800);
   }
 
   function unmount() {
@@ -734,8 +776,10 @@
     tickPending = true;
     requestAnimationFrame(() => {
       tickPending = false;
+      absorb(); // the dashboard hydrates late — keep course data fresh
       updateMission();
       updateConstellation();
+      updateTraveler();
       updateDawn();
     });
   });

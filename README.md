@@ -48,9 +48,11 @@ Selectors are confirmed against the real `/learn` DOM (July 2026):
   lessons-done/6 (carried across pages via `sessionStorage`) and turns
   **warm gold** at 6/6.
 - A mission widget in the sidebar XP card shows six dots that light up
-  per lesson, a 7-day dot chart, "≈ N lessons left in course" (per unit:
-  topics × the not-yet-started white segment width), and an arrival date
-  projected from your own 7-day lesson pace.
+  per lesson, a 7-day dot chart, "≈ N lessons left in course", and an
+  arrival date projected from your own 7-day lesson pace. The remaining
+  count is anchored to the unit bars (per unit: topics × the not-yet-started
+  white segment width) but decremented by exact daily lesson counts, since
+  the bars round to whole percents and can't see single lessons.
 - The site only changes on reload, so celebrations fire on load: today's
   lesson count is remembered in `localStorage`, and returning with more
   lessons sends one rising light streak per new lesson up from the
