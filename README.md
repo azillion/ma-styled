@@ -1,4 +1,4 @@
-# MA Styled — Hope Core
+# MA Styled
 
 A personal Chrome extension that restyles [Math Academy](https://mathacademy.com)
 as pointillist, futurist hope core: a stippled void, wide-tracked luminous
