@@ -33,6 +33,20 @@
     unit: '.courseUnit',
   };
 
+  // The site's gem tiers, renamed as an ascent from darkness into light.
+  // Edit freely — keys are the site's names.
+  const LEAGUES = {
+    Diamond: 'The Sun',
+    Emerald: 'Dawn',
+    Ruby: 'Horizon',
+    Sapphire: 'Moonrise',
+    Platinum: 'Constellation',
+    Gold: 'Starlight',
+    Silver: 'Spark',
+    Bronze: 'Ember',
+    Iron: 'The Void',
+  };
+
   const HUD_LINES = [
     'THE LIGHT GROWS',
     'ONWARD',
@@ -513,6 +527,19 @@
     if (label.textContent !== text) label.textContent = text;
   }
 
+  // ---- league renaming -------------------------------------------------
+  // Rewritten text stops matching the site names, so repeat runs (and the
+  // mutation they cause) are no-ops.
+
+  const LEAGUE_RE = new RegExp(`\\b(${Object.keys(LEAGUES).join('|')})\\s+League\\b`);
+
+  function renameLeagues() {
+    for (const el of document.querySelectorAll('#leaderboardLeagueName, .leagueLevelName')) {
+      const renamed = el.textContent.replace(LEAGUE_RE, (_, name) => LEAGUES[name]);
+      if (renamed !== el.textContent) el.textContent = renamed;
+    }
+  }
+
   // ---- HUD ------------------------------------------------------------
 
   function rotateHud() {
@@ -720,6 +747,7 @@
     updateMission();
     updateConstellation();
     updateDawn();
+    renameLeagues();
 
     await syncWithServer();
     updateMission();
@@ -781,6 +809,7 @@
       updateConstellation();
       updateTraveler();
       updateDawn();
+      renameLeagues();
     });
   });
   observer.observe(document.documentElement, {
