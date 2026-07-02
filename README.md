@@ -90,6 +90,15 @@ from the dashboard's visible completed-days list, plus one-time marks
   dawn for a few seconds (`ONE TENTH CLOSER TO THE SUN`).
 - **Weekly transmission** — first load of each week: a dismissable panel
   with last week's lessons, days alight, and brightest day.
+- **The voyage** — course catalog pages (`/courses/{slug}`) get a shore
+  dock showing that course's size in lessons and days at your pace, with a
+  `CHART COURSE` button. Charted courses become an itinerary card on the
+  dashboard with cumulative arrival dates. Entries carry timestamps so
+  un-charting merges cleanly across browsers. Catalog totals are outer
+  bounds — Math Academy's diagnostic typically shrinks them.
+- **Leagues, renamed** — the gem tiers become an ascent from darkness:
+  The Void → Ember → Spark → Starlight → Constellation → Moonrise →
+  Horizon → Dawn → The Sun, with dots on a matching brightness ladder.
 - Unit progress bars use inline-styled cells with a blue scale for
   repetition depth — the theme remaps them **by inline color** (so it works
   on every page that draws them) to a white-alpha scale: light literally

@@ -71,6 +71,8 @@
   let missionEl = null;
   let constEl = null;
   let travelerEl = null;
+  let shoreEl = null;
+  let voyageEl = null;
 
   const prefersStill = matchMedia('(prefers-reduced-motion: reduce)');
   const still = () => !settings.motion || prefersStill.matches;
@@ -116,6 +118,30 @@
     const byDate = lessonsByDate();
     return byDate ? byDate[dkey()] ?? 0 : null;
   }
+
+  // Catalog pages (/courses/{slug}): course name + total topics, summed
+  // from the "N topics" unit rows. Hidden tab content still parses.
+  // Returns null on the numeric-id progress pages and on /learn.
+  function readCatalog() {
+    const m = location.pathname.match(/^\/courses\/([a-z0-9-]+)\/?$/i);
+    if (!m || /^\d+$/.test(m[1])) return null;
+    let topics = 0;
+    for (const el of document.querySelectorAll('body *')) {
+      if (el.children.length) continue;
+      const t = el.textContent.trim().match(/^(\d+)\s+topics$/i);
+      if (t) topics += +t[1];
+    }
+    if (!topics) return null;
+    const slug = m[1];
+    const name =
+      document.querySelector('h1')?.textContent.replace(/\s+/g, ' ').trim() ||
+      slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    return { slug, name, topics };
+  }
+
+  const sameName = (a, b) =>
+    (a ?? '').replace(/\s+/g, ' ').trim().toLowerCase() ===
+    (b ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
 
   // Units of the selected course: name, topic count, and the fraction of
   // topics not yet started (the white bar segment's inline width).
@@ -190,6 +216,19 @@
       if (latest) course = { remaining: hist[latest].r, total: null, done: null };
     }
 
+    // remember which course is the current one (for the voyage + the
+    // "you are on this road" state on its own catalog page)
+    const courseNameEl = document.querySelector('#courseName');
+    if (courseNameEl) {
+      const name = (courseNameEl.innerText || courseNameEl.textContent)
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (name && !sameName(marks.currentCourse?.name, name)) {
+        marks.currentCourse = { name, t: Date.now() };
+        changed = true;
+      }
+    }
+
     if (changed) persist();
   }
 
@@ -202,8 +241,8 @@
   // so events fired in another browser don't repeat here. Unconfigured or
   // offline → stays local.
   let synced = false;
-  async function syncWithServer() {
-    if (synced) return;
+  async function syncWithServer(force = false) {
+    if (synced && !force) return;
     synced = true;
     try {
       const merged = await chrome.runtime.sendMessage({
@@ -527,6 +566,137 @@
     if (label.textContent !== text) label.textContent = text;
   }
 
+  // ---- the voyage --------------------------------------------------------
+  // Courses charted from their catalog pages become an itinerary with
+  // cumulative arrival dates at your measured pace. Entries carry an
+  // on/off flag + timestamp so un-charting merges cleanly across browsers.
+
+  const arriveIn = (days) => {
+    const d = daysAgo(-days);
+    const s = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+    return d.getFullYear() === new Date().getFullYear()
+      ? s
+      : `${s} ’${String(d.getFullYear()).slice(-2)}`;
+  };
+
+  function chartedCourses() {
+    return Object.entries(marks.voyage ?? {})
+      .filter(([, v]) => v.on)
+      .sort((a, b) => (a[1].t ?? 0) - (b[1].t ?? 0));
+  }
+
+  function setVoyage(slug, entry) {
+    marks.voyage = { ...(marks.voyage ?? {}), [slug]: { ...entry, t: Date.now() } };
+    persist();
+    syncWithServer(true);
+  }
+
+  // the shore dock, fixed bottom-center of catalog pages
+  function updateShore() {
+    const cat = readCatalog();
+    if (!cat) {
+      shoreEl?.remove();
+      shoreEl = null;
+      return;
+    }
+
+    if (!shoreEl || !shoreEl.isConnected) {
+      shoreEl = document.createElement('div');
+      shoreEl.className = 'mas-shore';
+      shoreEl.innerHTML = `
+        <div class="mas-shore-title">THIS SHORE</div>
+        <div class="mas-shore-line"></div>
+        <div class="mas-shore-btn"></div>`;
+      shoreEl.querySelector('.mas-shore-btn').addEventListener('click', () => {
+        const on = !marks.voyage?.[cat.slug]?.on;
+        setVoyage(cat.slug, { name: cat.name, lessons: cat.topics, on });
+        updateShore();
+      });
+      document.body.appendChild(shoreEl);
+    }
+
+    const setText = (sel, text) => {
+      const el = shoreEl.querySelector(sel);
+      if (el.textContent !== text) el.textContent = text;
+    };
+    const btn = shoreEl.querySelector('.mas-shore-btn');
+
+    if (sameName(marks.currentCourse?.name, cat.name) && course.remaining != null) {
+      setText('.mas-shore-line', `YOU ARE ON THIS ROAD · ≈ ${course.remaining} LESSONS REMAIN`);
+      btn.style.display = 'none';
+      return;
+    }
+
+    const rate = pace();
+    const days = rate > 0 ? ` · ~${Math.ceil(cat.topics / rate)} DAYS AT YOUR PACE` : '';
+    setText('.mas-shore-line', `≈ ${cat.topics} LESSONS${days}`);
+    btn.style.display = '';
+    const label = marks.voyage?.[cat.slug]?.on ? 'CHARTED · UNCHART' : 'CHART COURSE';
+    if (btn.textContent !== label) btn.textContent = label;
+  }
+
+  // the itinerary card in the dashboard sidebar
+  function updateVoyage() {
+    const entries = chartedCourses();
+    const anchor = constEl?.isConnected ? constEl : document.querySelector(SITE.xpFrame);
+    if (!anchor || !entries.length || course.remaining == null) {
+      voyageEl?.remove();
+      voyageEl = null;
+      return;
+    }
+
+    if (!voyageEl || !voyageEl.isConnected) {
+      voyageEl = document.createElement('div');
+      voyageEl.className = 'sidebarFrame mas-voyage';
+      voyageEl.style.boxSizing = 'border-box';
+      voyageEl.style.width = `${document.querySelector(SITE.xpFrame)?.offsetWidth ?? 330}px`;
+      voyageEl.innerHTML = `
+        <div class="mas-voyage-label">THE VOYAGE</div>
+        <div class="mas-voyage-rows"></div>`;
+      voyageEl.addEventListener('click', (e) => {
+        const slug = e.target.closest('.mas-voyage-x')?.dataset.slug;
+        if (!slug || !marks.voyage?.[slug]) return;
+        setVoyage(slug, { ...marks.voyage[slug], on: false });
+        updateVoyage();
+      });
+      anchor.insertAdjacentElement('afterend', voyageEl);
+    }
+
+    const rate = pace();
+    let cum = course.remaining;
+    const rows = [
+      {
+        name: marks.currentCourse?.name ?? 'CURRENT COURSE',
+        eta: `≈ ${cum}${rate > 0 ? ` · ${arriveIn(Math.ceil(cum / rate))}` : ''}`,
+      },
+      ...entries.map(([slug, v]) => {
+        cum += v.lessons;
+        return {
+          slug,
+          name: v.name,
+          eta: `+${v.lessons}${rate > 0 ? ` · ${arriveIn(Math.ceil(cum / rate))}` : ''}`,
+        };
+      }),
+    ];
+
+    const holder = voyageEl.querySelector('.mas-voyage-rows');
+    const sig = JSON.stringify(rows);
+    if (holder.dataset.sig !== sig) {
+      holder.dataset.sig = sig;
+      const esc = (s) => s.replace(/[<>&"]/g, (c) => `&#${c.charCodeAt(0)};`);
+      holder.innerHTML = rows
+        .map(
+          (r) => `
+        <div class="mas-voyage-row">
+          <span class="mas-voyage-name">${esc(r.name.toUpperCase())}</span>
+          <span class="mas-voyage-eta">${esc(r.eta)}</span>
+          ${r.slug ? `<span class="mas-voyage-x" data-slug="${esc(r.slug)}" title="unchart">×</span>` : '<span class="mas-voyage-x here">·</span>'}
+        </div>`
+        )
+        .join('');
+    }
+  }
+
   // ---- league renaming -------------------------------------------------
   // Rewritten text stops matching the site names, so repeat runs (and the
   // mutation they cause) are no-ops.
@@ -746,12 +916,16 @@
     // and re-render before any celebration fires
     updateMission();
     updateConstellation();
+    updateVoyage();
+    updateShore();
     updateDawn();
     renameLeagues();
 
     await syncWithServer();
     updateMission();
     updateConstellation();
+    updateVoyage();
+    updateShore();
     updateDawn();
 
     // let the dashboard finish hydrating before reading celebration
@@ -770,8 +944,10 @@
     if (starLoop) cancelAnimationFrame(starLoop);
     clearInterval(hudTimer);
     document.querySelector('.mas-transmission')?.remove();
-    for (const el of [starCanvas, dawnEl, hudEl, missionEl, constEl, travelerEl]) el?.remove();
-    starCanvas = dawnEl = hudEl = missionEl = constEl = travelerEl = starLoop = hudTimer = null;
+    for (const el of [starCanvas, dawnEl, hudEl, missionEl, constEl, travelerEl, shoreEl, voyageEl])
+      el?.remove();
+    starCanvas = dawnEl = hudEl = missionEl = constEl = travelerEl = shoreEl = voyageEl = null;
+    starLoop = hudTimer = null;
   }
 
   function applySettings(s) {
@@ -807,6 +983,8 @@
       absorb(); // the dashboard hydrates late — keep course data fresh
       updateMission();
       updateConstellation();
+      updateVoyage();
+      updateShore();
       updateTraveler();
       updateDawn();
       renameLeagues();

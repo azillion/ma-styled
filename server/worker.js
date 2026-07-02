@@ -21,11 +21,26 @@ function mergeState(a, b) {
   const am = a.marks ?? {};
   const bm = b.marks ?? {};
   const decile = Math.max(am.decile ?? -1, bm.decile ?? -1);
+
+  // voyage entries and currentCourse carry timestamps — newest wins,
+  // which makes un-charting propagate instead of resurrecting
+  const voyage = { ...(am.voyage ?? {}) };
+  for (const [slug, entry] of Object.entries(bm.voyage ?? {})) {
+    if (!voyage[slug] || (entry.t ?? 0) > (voyage[slug].t ?? 0)) voyage[slug] = entry;
+  }
+  const currentCourse =
+    [am.currentCourse, bm.currentCourse]
+      .filter(Boolean)
+      .sort((x, y) => (x.t ?? 0) - (y.t ?? 0))
+      .pop() ?? null;
+
   const marks = {
     init: !!(am.init || bm.init),
     units: [...new Set([...(am.units ?? []), ...(bm.units ?? [])])],
     decile: decile === -1 ? null : decile,
     weekShown: [am.weekShown, bm.weekShown].filter(Boolean).sort().pop() ?? null,
+    voyage,
+    currentCourse,
   };
 
   return { history, marks };

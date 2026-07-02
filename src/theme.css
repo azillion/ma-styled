@@ -1106,6 +1106,114 @@ html.mas[data-mas-goal-met] .mas-mission-count {
   }
 }
 
+/* The shore dock: distance + chart button, fixed bottom-center of
+   course catalog pages */
+.mas-shore {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483645;
+  padding: 14px 26px 16px;
+  text-align: center;
+  font-family: var(--mas-font);
+  background: rgba(10, 10, 13, 0.92);
+  border: 1px dotted rgba(233, 233, 228, 0.35);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.mas-shore-title {
+  font-size: 9px;
+  letter-spacing: 0.34em;
+  color: var(--mas-dim);
+}
+
+.mas-shore-line {
+  margin: 7px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--mas-star);
+}
+
+.mas-shore-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 18px;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--mas-star);
+  border: 1px solid rgba(233, 233, 228, 0.35);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.mas-shore-btn:hover {
+  background: var(--mas-star);
+  color: var(--mas-void);
+  box-shadow: 0 0 22px rgba(255, 255, 255, 0.35);
+}
+
+/* The voyage: charted itinerary in the dashboard sidebar */
+.mas-voyage {
+  padding: 16px;
+  font-family: var(--mas-font);
+}
+
+.mas-voyage-label {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: var(--mas-dim);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.mas-voyage-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dotted rgba(233, 233, 228, 0.1);
+}
+
+.mas-voyage-row:last-child {
+  border-bottom: none;
+}
+
+.mas-voyage-name {
+  flex: 1;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--mas-star);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mas-voyage-eta {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--mas-dim);
+  white-space: nowrap;
+}
+
+.mas-voyage-x {
+  width: 14px;
+  text-align: center;
+  color: rgba(233, 233, 228, 0.3);
+  cursor: pointer;
+}
+
+.mas-voyage-x:hover {
+  color: var(--mas-star);
+}
+
+.mas-voyage-x.here {
+  cursor: default;
+  color: var(--mas-warm);
+}
+
 /* milestone flare: the dawn surges for a few seconds */
 .mas-flare {
   position: fixed;
