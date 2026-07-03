@@ -4,5 +4,12 @@ reference/
 # wrangler
 server/node_modules/
 server/.wrangler/
+# real deploy config (holds the KV namespace id); wrangler.toml.example is tracked
+server/wrangler.toml
+
+# secrets — never commit, anywhere in the tree
+.env
+.env.*
+.dev.vars
 
 .DS_Store

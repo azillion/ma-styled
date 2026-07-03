@@ -8,10 +8,12 @@ far more than enough (a few requests per day).
 
 ```sh
 cd server
+cp wrangler.toml.example wrangler.toml   # real config is gitignored
 npx wrangler login                       # opens browser, free CF account works
 npx wrangler kv namespace create MAS_SYNC
 #   → copy the printed id into wrangler.toml (kv_namespaces.id)
 openssl rand -hex 24                     # generate your token, keep it handy
+#   → stash it as SYNC_TOKEN=<token> in server/.env (gitignored) so it isn't lost
 npx wrangler secret put SYNC_TOKEN       # paste the token when prompted
 npx wrangler deploy
 #   → note the URL, e.g. https://ma-styled-sync.<account>.workers.dev
