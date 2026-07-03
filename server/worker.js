@@ -66,7 +66,8 @@ export default {
       return json({ error: 'unauthorized' }, 401);
     }
 
-    if (new URL(request.url).pathname !== '/state') {
+    const url = new URL(request.url);
+    if (url.pathname !== '/state') {
       return json({ error: 'not found' }, 404);
     }
 
@@ -81,7 +82,10 @@ export default {
       } catch {
         return json({ error: 'bad json' }, 400);
       }
-      const merged = mergeState(stored, incoming);
+      // ?mode=replace: repair escape hatch — the monotonic merge can never
+      // lower a value, so corrupted history needs a verbatim overwrite
+      const merged =
+        url.searchParams.get('mode') === 'replace' ? incoming : mergeState(stored, incoming);
       await env.KV.put('state', JSON.stringify(merged));
       return json(merged);
     }

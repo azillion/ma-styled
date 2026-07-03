@@ -90,9 +90,14 @@
     return d;
   };
 
-  // "Wed, Jul 1st, 2026" → "2026-07-01"; "Today" → today's key
+  // The date this page was rendered. "Today" in the completed list refers
+  // to the DOM's vintage, not the current clock — a tab that crosses
+  // midnight must not re-book yesterday's lessons onto the new day.
+  const PAGE_DAY = dkey();
+
+  // "Wed, Jul 1st, 2026" → "2026-07-01"; "Today" → the page's render day
   function parseSiteDate(value) {
-    if (value === 'Today') return dkey();
+    if (value === 'Today') return PAGE_DAY;
     const d = new Date(value.replace(/^[A-Za-z]+,\s*/, '').replace(/(\d+)(st|nd|rd|th)/, '$1'));
     return isNaN(d) ? null : dkey(d);
   }
@@ -776,6 +781,32 @@
     setTimeout(() => streakEl.remove(), 2000);
   }
   window.masAscend = ascend;
+
+  // Repair tool for bad history (the merge is max-wins, so corrupted
+  // values can't be lowered through normal paths). From the devtools
+  // console on any Math Academy tab:
+  //   masRepair('2026-07-03', 0)
+  // Fixes the day locally and force-replaces the server document. Run it
+  // in each browser that already absorbed the bad value.
+  window.masRepair = async (dateKey, lessons = 0) => {
+    hist[dateKey] = { ...hist[dateKey], l: lessons };
+    if (!lessons && hist[dateKey].r == null) delete hist[dateKey];
+    persist();
+    updateMission();
+    updateConstellation();
+    updateDawn();
+    try {
+      const res = await chrome.runtime.sendMessage({
+        type: 'mas-sync',
+        replace: true,
+        history: hist,
+        marks,
+      });
+      return res ? 'repaired — server replaced' : 'repaired locally (sync unconfigured/offline)';
+    } catch {
+      return 'repaired locally (sync unavailable)';
+    }
+  };
 
   // one rising streak per lesson finished since the last visit today;
   // lessons past the goal rise warm

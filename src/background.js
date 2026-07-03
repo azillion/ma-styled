@@ -13,7 +13,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
     });
     if (!syncUrl || !syncToken) return respond(null);
 
-    const res = await fetch(`${syncUrl.replace(/\/+$/, '').replace(/\/state$/, '')}/state`, {
+    const base = syncUrl.replace(/\/+$/, '').replace(/\/state$/, '');
+    const res = await fetch(`${base}/state${msg.replace ? '?mode=replace' : ''}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${syncToken}`,
