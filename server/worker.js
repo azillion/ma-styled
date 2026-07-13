@@ -22,11 +22,16 @@ function mergeState(a, b) {
   const bm = b.marks ?? {};
   const decile = Math.max(am.decile ?? -1, bm.decile ?? -1);
 
-  // voyage entries and currentCourse carry timestamps — newest wins,
-  // which makes un-charting propagate instead of resurrecting
+  // voyage entries, per-course progress anchors, and currentCourse carry
+  // timestamps — newest wins, which makes un-charting (and re-anchoring
+  // in either direction) propagate instead of resurrecting
   const voyage = { ...(am.voyage ?? {}) };
   for (const [slug, entry] of Object.entries(bm.voyage ?? {})) {
     if (!voyage[slug] || (entry.t ?? 0) > (voyage[slug].t ?? 0)) voyage[slug] = entry;
+  }
+  const anchors = { ...(am.anchors ?? {}) };
+  for (const [key, entry] of Object.entries(bm.anchors ?? {})) {
+    if (!anchors[key] || (entry.t ?? 0) > (anchors[key].t ?? 0)) anchors[key] = entry;
   }
   const currentCourse =
     [am.currentCourse, bm.currentCourse]
@@ -40,6 +45,7 @@ function mergeState(a, b) {
     decile: decile === -1 ? null : decile,
     weekShown: [am.weekShown, bm.weekShown].filter(Boolean).sort().pop() ?? null,
     voyage,
+    anchors,
     currentCourse,
   };
 

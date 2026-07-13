@@ -4,7 +4,8 @@
 //
 // Persistent state (chrome.storage.local):
 //   masHistory: { 'YYYY-MM-DD': { l: lessonsThatDay, r: lessonsRemaining } }
-//   masMarks:   { init, units: [names], decile, weekShown }
+//   masMarks:   { init, units: [names], decile, weekShown, voyage,
+//                 currentCourse, anchors: { [course]: progress snapshot } }
 
 (() => {
   'use strict';
@@ -144,9 +145,26 @@
     return { slug, name, topics };
   }
 
-  const sameName = (a, b) =>
-    (a ?? '').replace(/\s+/g, ' ').trim().toLowerCase() ===
-    (b ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const normName = (s) => (s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const sameName = (a, b) => normName(a) === normName(b);
+
+  // Progress pages (/courses/{id}/progress): the site's only per-topic
+  // view. Every unit's topics are server-rendered even while collapsed —
+  // one white circle per not-yet-started topic, blue-scale for done. The
+  // sequence sidebar names this page's course as the unlinked
+  // .selectedCourse entry.
+  function readProgress() {
+    if (!/^\/courses\/\d+\/progress\/?$/.test(location.pathname)) return null;
+    const name = document
+      .querySelector('.selectedCourse')
+      ?.textContent.replace(/\s+/g, ' ')
+      .trim();
+    const circles = document.querySelectorAll('#units .topicCircle');
+    if (!name || !circles.length) return null;
+    let remaining = 0;
+    for (const el of circles) if (el.style.backgroundColor === 'white') remaining++;
+    return { name, remaining, total: circles.length };
+  }
 
   // Units of the selected course: name, topic count, and the fraction of
   // topics not yet started (the white bar segment's inline width).
@@ -189,12 +207,52 @@
       }
     }
 
+    // A progress-page visit takes an exact, course-scoped snapshot. Each
+    // course anchors only its own count, so another course's page (or a
+    // finished course's all-zero bars) can never poison this one's.
+    const p = readProgress();
+    if (p) {
+      const key = normName(p.name);
+      const prev = marks.anchors?.[key];
+      if (!prev || prev.r !== p.remaining || prev.total !== p.total || prev.date !== today) {
+        marks.anchors = {
+          ...(marks.anchors ?? {}),
+          [key]: {
+            name: p.name,
+            r: p.remaining,
+            total: p.total,
+            date: today,
+            l: hist[today]?.l ?? 0,
+            t: Date.now(),
+          },
+        };
+        changed = true;
+      }
+    }
+
     const c = readCourse();
-    if (c) {
-      // The unit bars round to whole percents, so single lessons often
-      // don't move their estimate. Anchor to the bars but decrement by our
-      // own exact lesson counts: remaining ticks down 1 per lesson, and
-      // re-anchors whenever the site's estimate drops below the model.
+    const a = anchoredRemaining();
+    if (a) {
+      // The anchor is authoritative: exact where the unit bars round to
+      // whole percents, and free to move in both directions where the old
+      // per-day ratchet could only fall. Bars are display detail only.
+      const total = a.total ?? c?.total ?? null;
+      course = {
+        units: c?.units ?? course.units,
+        total,
+        remaining: a.remaining,
+        done: total ? 1 - a.remaining / total : null,
+      };
+      if (hist[today]?.r !== a.remaining) {
+        hist[today] = { ...hist[today], r: a.remaining };
+        changed = true;
+      }
+    } else if (c) {
+      // No anchor for this course yet — fall back to the unit bars. They
+      // round to whole percents, so single lessons often don't move their
+      // estimate: anchor to the bars but decrement by our own exact lesson
+      // counts, and re-anchor whenever the site's estimate drops below the
+      // model.
       let est = c.remaining;
       const prevKey = Object.keys(hist)
         .filter((k) => k < today && hist[k]?.r != null)
@@ -262,12 +320,17 @@
     for (const [slug, entry] of Object.entries(b.voyage ?? {})) {
       if (!voyage[slug] || (entry.t ?? 0) > (voyage[slug].t ?? 0)) voyage[slug] = entry;
     }
+    const anchors = { ...(a.anchors ?? {}) };
+    for (const [key, entry] of Object.entries(b.anchors ?? {})) {
+      if (!anchors[key] || (entry.t ?? 0) > (anchors[key].t ?? 0)) anchors[key] = entry;
+    }
     return {
       init: !!(a.init || b.init),
       units: [...new Set([...(a.units ?? []), ...(b.units ?? [])])],
       decile: decile === -1 ? null : decile,
       weekShown: [a.weekShown, b.weekShown].filter(Boolean).sort().pop() ?? null,
       voyage,
+      anchors,
       currentCourse:
         [a.currentCourse, b.currentCourse]
           .filter(Boolean)
@@ -303,6 +366,20 @@
   }
 
   const lessonsOn = (key) => hist[key]?.l ?? 0;
+
+  // Remaining per the current course's newest progress-page anchor, minus
+  // lessons finished since it was taken (each lesson completes one topic).
+  // On the anchor's own day only lessons beyond its captured count are
+  // subtracted — the snapshot already reflected the earlier ones.
+  function anchoredRemaining() {
+    const a = marks.anchors?.[normName(marks.currentCourse?.name)];
+    if (!a) return null;
+    let since = Math.max(0, lessonsOn(a.date) - (a.l ?? 0));
+    for (const [k, v] of Object.entries(hist)) {
+      if (k > a.date) since += v.l ?? 0;
+    }
+    return { remaining: Math.max(0, a.r - since), total: a.total ?? null };
+  }
 
   // mean lessons/day over the 7 full days before today (missing = 0);
   // aspirational LESSON_GOAL when there's no history yet

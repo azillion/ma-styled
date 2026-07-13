@@ -49,10 +49,18 @@ Selectors are confirmed against the real `/learn` DOM (July 2026):
   **warm gold** at 6/6.
 - A mission widget in the sidebar XP card shows six dots that light up
   per lesson, a 7-day dot chart, "≈ N lessons left in course", and an
-  arrival date projected from your own 7-day lesson pace. The remaining
-  count is anchored to the unit bars (per unit: topics × the not-yet-started
-  white segment width) but decremented by exact daily lesson counts, since
-  the bars round to whole percents and can't see single lessons.
+  arrival date projected from your own 7-day lesson pace.
+- **The remaining count calibrates on the progress page**
+  (`/courses/{id}/progress`) — the site's only per-topic view. Counting
+  the white (not-yet-started) `.topicCircle`s gives an exact remaining;
+  each visit stores a course-scoped anchor (`masMarks.anchors`, keyed by
+  the sidebar's `.selectedCourse` name), decremented by exact daily
+  lesson counts between visits. Anchors are timestamped, newest-wins in
+  merges, and free to move in **both** directions — so a bad reading heals
+  on the next visit, and one course's page can never poison another's
+  count. Without an anchor the model falls back to the dashboard unit
+  bars (per unit: topics × the white segment width, min-clamped against
+  history — the legacy path; visit the progress page once to escape it).
 - The site only changes on reload, so celebrations fire on load: today's
   lesson count is remembered in `localStorage`, and returning with more
   lessons sends one rising light streak per new lesson up from the

@@ -35,8 +35,13 @@ curl -H "Authorization: Bearer <token>" https://<worker-url>/state
 ## Notes
 
 - The server merges on PUT (lessons = max, units = union, decile = max,
-  remaining = min, weekShown = latest), so writes are race-tolerant and
-  idempotent — no revisions needed.
+  remaining = min, weekShown = latest, voyage/anchors/currentCourse =
+  newest timestamp wins), so writes are race-tolerant and idempotent — no
+  revisions needed.
+- Redeploy (`npx wrangler deploy`) after pulling changes to `worker.js`;
+  an older worker silently drops fields it doesn't know from its merged
+  response (the client protects itself, but those fields won't propagate
+  across browsers until the worker knows them).
 - Not public-facing in any meaningful sense: one route, bearer-token
   gated, stores a few KB of lesson counts.
 - iPad caveat: extensions can't run there, but lessons done on the iPad
